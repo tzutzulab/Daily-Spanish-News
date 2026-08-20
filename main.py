@@ -31,12 +31,12 @@ class SpanishNewsDailyService:
     def send_daily_news(self):
         logger.info("Starting daily news task...")
         try:
-            articles, vocabulary_list = self.news_fetcher.get_news(num_articles=1)
+            articles = self.news_fetcher.get_news(num_articles=1)
             if not articles:
                 logger.warning("No articles found!")
                 return False
             
-            success = self.email_sender.send_email(self.recipient_email, articles, vocabulary_list)
+            success = self.email_sender.send_email(self.recipient_email, articles)
             return success
         except Exception as e:
             logger.error(f"Error in send_daily_news: {str(e)}")
