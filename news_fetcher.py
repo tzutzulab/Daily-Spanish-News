@@ -15,7 +15,6 @@ class NewsFetcher:
     def __init__(self):
         self.rss_feeds = [
             'https://www.rtve.es/rss/noticias_portada.xml',
-            'https://www.bbc.com/mundo/index.xml',
         ]
     
     def fetch_full_article_text(self, url):
