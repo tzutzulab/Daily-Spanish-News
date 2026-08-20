@@ -1,5 +1,5 @@
 """
-新聞獲取模組 - 簡化穩定版本
+新聞獲取模組 - 移除單字庫版本
 """
 
 import feedparser
@@ -23,11 +23,17 @@ class NewsFetcher:
                 feed = feedparser.parse(feed_url)
                 for entry in feed.entries[:3]:
                     summary = entry.get('summary', '')
-                    if len(summary) < 100:
+                    if len(summary) < 50:
                         continue
+                    
+                    full_content = entry.get('content', [{'value': summary}])[0].get('value', summary)
+                    if len(full_content) < len(summary):
+                        full_content = summary
+                        
                     articles.append({
                         'title': entry.get('title', ''),
-                        'summary': summary[:300] + '...',
+                        'summary': summary,
+                        'full_content': full_content,
                         'link': entry.get('link', ''),
                         'source': feed.feed.get('title', 'News')
                     })
@@ -40,10 +46,4 @@ class NewsFetcher:
     
     def get_news(self, num_articles=1):
         articles = self.fetch_from_rss(num_articles)
-        # 固定提供幾個基礎單字預習，確保穩定
-        vocabulary_list = [
-            ('gobierno', '政府', 'El gobierno anunció nuevas medidas.'),
-            ('desarrollo', '發展', 'Buscan el desarrollo sostenible del país.'),
-            ('problema', '問題', 'Es un problema complejo de resolver.')
-        ]
-        return articles, vocabulary_list
+        return articles
