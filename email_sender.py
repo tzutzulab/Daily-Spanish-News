@@ -29,7 +29,7 @@ class EmailSender:
         return stars if stars else '⭐⭐⭐'
     
     def create_html_content(self, articles, vocabulary_list=None):
-        """創建乾淨清爽的 HTML 郵件內容"""
+        """創建寬版、完整內文、10個單字、淺色系的 HTML 郵件內容"""
         current_date = datetime.now().strftime("%Y年%m月%d日")
         
         html = f"""
@@ -40,66 +40,78 @@ class EmailSender:
                 <style>
                     body {{
                         font-family: Arial, sans-serif;
-                        line-height: 1.6;
+                        line-height: 1.7;
                         color: #333;
-                        background-color: #f4f4f4;
+                        background-color: #f9f9f9;
                         padding: 20px;
                         margin: 0;
                     }}
                     .container {{
-                        max-width: 600px;
+                        max-width: 800px;
                         margin: 0 auto;
                         background: #ffffff;
-                        padding: 20px;
+                        padding: 30px;
                         border-radius: 8px;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
                     }}
                     .header {{
-                        background: #4CAF50;
+                        background: #81c784;
                         color: white;
-                        padding: 20px;
+                        padding: 25px;
                         text-align: center;
                         border-radius: 6px 6px 0 0;
                     }}
                     .content {{
-                        padding: 20px;
+                        padding: 20px 10px;
                     }}
                     .vocabulary-section {{
-                        background: #e8f5e9;
-                        border-left: 4px solid #4CAF50;
-                        padding: 15px;
-                        margin-bottom: 20px;
+                        background: #f1f8e9;
+                        border-left: 4px solid #aed581;
+                        padding: 20px;
+                        margin-bottom: 30px;
                         border-radius: 4px;
                     }}
+                    .vocabulary-grid {{
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 12px;
+                        margin-top: 10px;
+                    }}
+                    .vocabulary-item {{
+                        font-size: 14px;
+                        margin-bottom: 8px;
+                    }}
                     .article {{
-                        margin-bottom: 25px;
-                        padding-bottom: 15px;
-                        border-bottom: 1px solid #eee;
+                        margin-bottom: 35px;
+                        padding-bottom: 25px;
+                        border-bottom: 1px solid #eaeaea;
                     }}
                     .article-title {{
-                        font-size: 20px;
-                        color: #1a1a1a;
-                        margin-bottom: 10px;
-                    }}
-                    .article-summary {{
-                        font-size: 14px;
-                        color: #555;
+                        font-size: 22px;
+                        color: #2c3e50;
                         margin-bottom: 15px;
+                    }}
+                    .article-body {{
+                        font-size: 15px;
+                        color: #444;
+                        white-space: pre-line;
+                        margin-bottom: 15px;
+                        text-align: justify;
                     }}
                     .article-link {{
                         display: inline-block;
-                        background: #2196F3;
+                        background: #64b5f6;
                         color: white;
                         text-decoration: none;
                         padding: 8px 16px;
                         border-radius: 4px;
-                        font-size: 12px;
+                        font-size: 13px;
                     }}
                     .footer {{
                         text-align: center;
                         color: #888;
                         font-size: 12px;
-                        margin-top: 20px;
+                        margin-top: 30px;
                     }}
                 </style>
             </head>
@@ -112,27 +124,30 @@ class EmailSender:
                     <div class="content">
         """
         
-        # 添加詞彙預習
+        # 添加 10 個詞彙預習
         if vocabulary_list and len(vocabulary_list) > 0:
             html += """
                         <div class="vocabulary-section">
-                            <h3>📚 今日單字預習</h3>
+                            <h3>📚 今日單字預習 (共 10 個)</h3>
+                            <div style="margin-top: 10px;">
             """
-            for word, translation, example in vocabulary_list[:5]:
+            for word, translation, example in vocabulary_list[:10]:
                 html += f"""
-                            <p><b>{word}</b>：{translation}<br><i>💬 例句：{example}</i></p>
+                            <p style="margin-bottom: 10px;"><b>{word}</b>：{translation}<br><i style="color: #666; font-size: 13px;">💬 例句：{example}</i></p>
                 """
             html += """
+                            </div>
                         </div>
             """
         
-        # 添加文章
+        # 添加完整文章內容
         for article in articles:
+            full_content = article.get('full_content', article['summary'])
             html += f"""
                         <div class="article">
                             <h3 class="article-title">{article['title']}</h3>
-                            <p class="article-summary">{article['summary']}</p>
-                            <a href="{article['link']}" class="article-link">閱讀完整文章 →</a>
+                            <div class="article-body">{full_content}</div>
+                            <a href="{article['link']}" class="article-link">至原網站閱讀更多 →</a>
                         </div>
             """
         
