@@ -1,10 +1,11 @@
 """
-新聞獲取模組 - 完整文章內容獲取版本
+新聞獲取模組 - 隨機盲盒抽取版本
 """
 
 import feedparser
 import logging
 import requests
+import random
 from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.INFO)
@@ -25,28 +26,27 @@ class NewsFetcher:
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'html.parser')
                 
-                # 針對常見新聞網站（El País, BBC Mundo 等）提取段落
                 paragraphs = soup.find_all('p')
                 full_text_list = []
                 for p in paragraphs:
                     text = p.get_text().strip()
-                    # 過濾掉太短或無關的段落
                     if len(text) > 40 and not any(kw in text.lower() for kw in ['cookie', 'suscríbete', 'derechos reservados', 'publicidad']):
                         full_text_list.append(text)
                 
                 if full_text_list:
-                    return "\n\n".join(full_text_list[:10]) # 取前 10 個核心段落
+                    return "\n\n".join(full_text_list[:10])
         except Exception as e:
             logger.error(f"Error scraping full article from {url}: {str(e)}")
         return None
 
     def get_news(self, num_articles=1):
-        articles = []
+        candidate_articles = []
         for feed_url in self.rss_feeds:
             try:
                 logger.info(f"Fetching from {feed_url}")
                 feed = feedparser.parse(feed_url)
-                for entry in feed.entries[:3]:
+                # 收集每個來源前 5 篇文章作為候選池
+                for entry in feed.entries[:5]:
                     summary = entry.get('summary', '')
                     if len(summary) < 50:
                         continue
@@ -54,21 +54,24 @@ class NewsFetcher:
                     link = entry.get('link', '')
                     title = entry.get('title', '')
                     
-                    # 嘗試抓取完整內文
                     full_content = self.fetch_full_article_text(link)
                     if not full_content or len(full_content) < len(summary):
-                        full_content = summary # 抓不到才退回 RSS 摘要
+                        full_content = summary
                         
-                    articles.append({
+                    candidate_articles.append({
                         'title': title,
                         'summary': summary,
                         'full_content': full_content,
                         'link': link,
                         'source': feed.feed.get('title', 'News')
                     })
-                    if len(articles) >= num_articles:
-                        return articles
             except Exception as e:
                 logger.error(f"Error fetching RSS: {str(e)}")
                 continue
-        return articles
+        
+        # 如果候選池有文章，從中隨機抽出一篇（或指定數量）
+        if candidate_articles:
+            selected = random.sample(candidate_articles, min(num_articles, len(candidate_articles)))
+            return selected
+            
+        return []
