@@ -1,5 +1,5 @@
 """
-新聞獲取模組 - 強化爬蟲相容性與雙源公平隨機版本
+新聞獲取模組 - 僅保留 BBC Mundo 穩定來源版本
 """
 
 import feedparser
@@ -13,12 +13,13 @@ logger = logging.getLogger(__name__)
 
 class NewsFetcher:
     def __init__(self):
+        # 僅保留穩定且可正常抓取的 BBC Mundo RSS 來源
         self.rss_feeds = [
-            'https://www.rtve.es/rss/noticias_portada.xml',
+            'https://www.bbc.com/mundo/index.xml',
         ]
     
     def fetch_full_article_text(self, url):
-        """使用更擬真的瀏覽器標頭，避免被 RTVE 等在地網站的防火牆擋下"""
+        """透過爬蟲直接抓取網頁的正文內容，確保不是只有摘要"""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -48,14 +49,13 @@ class NewsFetcher:
         for feed_url in self.rss_feeds:
             try:
                 logger.info(f"Fetching from {feed_url}")
-                # 加上 User-Agent 讓 RSS 解析更順暢
                 feed = feedparser.parse(feed_url, agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
                 source_candidates = []
                 
-                for entry in feed.entries[:5]:
+                for entry in feed.entries[:5]: # 抓取前 5 篇作為候選池
                     summary = entry.get('summary', '')
                     if len(summary) < 20:
-                        summary = entry.get('title', '') # 預防部分 RTVE 摘要欄位較短
+                        continue
                     
                     link = entry.get('link', '')
                     title = entry.get('title', '')
@@ -77,6 +77,7 @@ class NewsFetcher:
                 logger.error(f"Error fetching RSS {feed_url}: {str(e)}")
                 continue
         
+        # 從候選池中隨機抽出一篇
         if all_candidates:
             selected = random.sample(all_candidates, min(num_articles, len(all_candidates)))
             return selected
