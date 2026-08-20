@@ -1,28 +1,29 @@
 name: Daily Spanish News
 
 on:
-schedule:
-- cron: '0 8 * * *'
-workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
 
 jobs:
-send-news:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout repository
-uses: actions/checkout@v3
-
-  - name: Set up Python
-    uses: actions/setup-python@v4
-    with:
-      python-version: '3.11'
-
-  - name: Install dependencies
-    run: pip install -r requirements.txt
-
-  - name: Send daily news
-    env:
-      GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
-      GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
-      RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
-    run: python main.py test
+  send-news:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Send daily news
+        env:
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        run: python main.py test
