@@ -1,6 +1,5 @@
 """
-郵件發送模組
-使用 Gmail SMTP 發送西班牙語新聞郵件
+郵件發送模組 - 移除單字區塊版本
 """
 
 import smtplib
@@ -8,7 +7,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 import logging
-import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,13 +21,8 @@ class EmailSender:
         self.smtp_server = 'smtp.gmail.com'
         self.smtp_port = 587
     
-    def get_importance_stars(self, importance=5):
-        """生成重要程度星星"""
-        stars = '⭐' * min(importance, 5)
-        return stars if stars else '⭐⭐⭐'
-    
-    def create_html_content(self, articles, vocabulary_list=None):
-        """創建寬版、完整內文、10個單字、淺色系的 HTML 郵件內容"""
+    def create_html_content(self, articles):
+        """創建寬版、完整內文、淺色系的 HTML 郵件內容"""
         current_date = datetime.now().strftime("%Y年%m月%d日")
         
         html = f"""
@@ -63,23 +56,6 @@ class EmailSender:
                     }}
                     .content {{
                         padding: 20px 10px;
-                    }}
-                    .vocabulary-section {{
-                        background: #f1f8e9;
-                        border-left: 4px solid #aed581;
-                        padding: 20px;
-                        margin-bottom: 30px;
-                        border-radius: 4px;
-                    }}
-                    .vocabulary-grid {{
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 12px;
-                        margin-top: 10px;
-                    }}
-                    .vocabulary-item {{
-                        font-size: 14px;
-                        margin-bottom: 8px;
                     }}
                     .article {{
                         margin-bottom: 35px;
@@ -124,22 +100,6 @@ class EmailSender:
                     <div class="content">
         """
         
-        # 添加 10 個詞彙預習
-        if vocabulary_list and len(vocabulary_list) > 0:
-            html += """
-                        <div class="vocabulary-section">
-                            <h3>📚 今日單字預習 (共 10 個)</h3>
-                            <div style="margin-top: 10px;">
-            """
-            for word, translation, example in vocabulary_list[:10]:
-                html += f"""
-                            <p style="margin-bottom: 10px;"><b>{word}</b>：{translation}<br><i style="color: #666; font-size: 13px;">💬 例句：{example}</i></p>
-                """
-            html += """
-                            </div>
-                        </div>
-            """
-        
         # 添加完整文章內容
         for article in articles:
             full_content = article.get('full_content', article['summary'])
@@ -162,7 +122,7 @@ class EmailSender:
         """
         return html
     
-    def send_email(self, recipient_email, articles, vocabulary_list=None):
+    def send_email(self, recipient_email, articles):
         """發送郵件主邏輯"""
         try:
             message = MIMEMultipart('alternative')
@@ -170,7 +130,7 @@ class EmailSender:
             message['From'] = self.sender_email
             message['To'] = recipient_email
             
-            html_content = self.create_html_content(articles, vocabulary_list)
+            html_content = self.create_html_content(articles)
             message.attach(MIMEText(html_content, 'html', 'utf-8'))
             
             logger.info("Connecting to Gmail SMTP server...")
