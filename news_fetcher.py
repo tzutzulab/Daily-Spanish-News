@@ -1,5 +1,5 @@
 """
-新聞獲取模組 - 隨機盲盒抽取版本
+新聞獲取模組 - 公平多源隨機盲盒抽取版本
 """
 
 import feedparser
@@ -40,13 +40,16 @@ class NewsFetcher:
         return None
 
     def get_news(self, num_articles=1):
-        candidate_articles = []
+        all_candidates = []
+        
+        # 遍歷每一個 RSS 來源，確保每個來源都有公平的機會貢獻候選文章
         for feed_url in self.rss_feeds:
             try:
                 logger.info(f"Fetching from {feed_url}")
                 feed = feedparser.parse(feed_url)
-                # 收集每個來源前 5 篇文章作為候選池
-                for entry in feed.entries[:5]:
+                source_candidates = []
+                
+                for entry in feed.entries[:5]: # 每個來源取前 5 篇
                     summary = entry.get('summary', '')
                     if len(summary) < 50:
                         continue
@@ -58,20 +61,23 @@ class NewsFetcher:
                     if not full_content or len(full_content) < len(summary):
                         full_content = summary
                         
-                    candidate_articles.append({
+                    source_candidates.append({
                         'title': title,
                         'summary': summary,
                         'full_content': full_content,
                         'link': link,
                         'source': feed.feed.get('title', 'News')
                     })
+                
+                # 將該來源收集到的文章加入總候選池
+                all_candidates.extend(source_candidates)
             except Exception as e:
-                logger.error(f"Error fetching RSS: {str(e)}")
+                logger.error(f"Error fetching RSS {feed_url}: {str(e)}")
                 continue
         
-        # 如果候選池有文章，從中隨機抽出一篇（或指定數量）
-        if candidate_articles:
-            selected = random.sample(candidate_articles, min(num_articles, len(candidate_articles)))
+        # 如果總候選池有文章，從中完全隨機抽出一篇
+        if all_candidates:
+            selected = random.sample(all_candidates, min(num_articles, len(all_candidates)))
             return selected
             
         return []
