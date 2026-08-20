@@ -1,5 +1,5 @@
 """
-郵件發送模組 - 移除單字區塊版本
+郵件發送模組 - 移除綠色標題、響應式全寬度與放大字體版本
 """
 
 import smtplib
@@ -22,7 +22,7 @@ class EmailSender:
         self.smtp_port = 587
     
     def create_html_content(self, articles):
-        """創建寬版、完整內文、淺色系的 HTML 郵件內容"""
+        """創建無頂部方框、響應式寬度、放大字體的 HTML 郵件內容"""
         current_date = datetime.now().strftime("%Y年%m月%d日")
         
         html = f"""
@@ -33,45 +33,41 @@ class EmailSender:
                 <style>
                     body {{
                         font-family: Arial, sans-serif;
-                        line-height: 1.7;
+                        line-height: 1.8;
                         color: #333;
                         background-color: #f9f9f9;
-                        padding: 20px;
+                        padding: 10px;
                         margin: 0;
                     }}
                     .container {{
-                        max-width: 800px;
+                        width: 100%;
+                        max-width: 1000px;
                         margin: 0 auto;
                         background: #ffffff;
-                        padding: 30px;
+                        padding: 30px 40px;
+                        box-sizing: border-box;
                         border-radius: 8px;
                         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
                     }}
-                    .header {{
-                        background: #81c784;
-                        color: white;
-                        padding: 25px;
-                        text-align: center;
-                        border-radius: 6px 6px 0 0;
-                    }}
                     .content {{
-                        padding: 20px 10px;
+                        padding: 10px 0;
                     }}
                     .article {{
                         margin-bottom: 35px;
                         padding-bottom: 25px;
-                        border-bottom: 1px solid #eaeaea;
                     }}
                     .article-title {{
-                        font-size: 22px;
+                        font-size: 26px;
                         color: #2c3e50;
-                        margin-bottom: 15px;
+                        margin-bottom: 20px;
+                        line-height: 1.4;
+                        font-weight: bold;
                     }}
                     .article-body {{
-                        font-size: 15px;
-                        color: #444;
+                        font-size: 18px;
+                        color: #333;
                         white-space: pre-line;
-                        margin-bottom: 15px;
+                        margin-bottom: 20px;
                         text-align: justify;
                     }}
                     .article-link {{
@@ -79,24 +75,35 @@ class EmailSender:
                         background: #64b5f6;
                         color: white;
                         text-decoration: none;
-                        padding: 8px 16px;
+                        padding: 10px 20px;
                         border-radius: 4px;
-                        font-size: 13px;
+                        font-size: 15px;
                     }}
                     .footer {{
                         text-align: center;
                         color: #888;
-                        font-size: 12px;
-                        margin-top: 30px;
+                        font-size: 14px;
+                        margin-top: 40px;
+                        border-top: 1px solid #eaeaea;
+                        padding-top: 20px;
+                    }}
+                    
+                    /* 針對行動裝置與不同螢幕大小的響應式設定 */
+                    @media screen and (max-width: 768px) {{
+                        .container {{
+                            padding: 15px;
+                        }}
+                        .article-title {{
+                            font-size: 22px;
+                        }}
+                        .article-body {{
+                            font-size: 16px;
+                        }}
                     }}
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <div class="header">
-                        <h2>📰 西班牙語新聞每日精選</h2>
-                        <p>{current_date}</p>
-                    </div>
                     <div class="content">
         """
         
@@ -105,16 +112,16 @@ class EmailSender:
             full_content = article.get('full_content', article['summary'])
             html += f"""
                         <div class="article">
-                            <h3 class="article-title">{article['title']}</h3>
+                            <h1 class="article-title">{article['title']}</h1>
                             <div class="article-body">{full_content}</div>
-                            <a href="{article['link']}" class="article-link">至原網站閱讀更多 →</a>
+                            <a href="{article['link']}" class="article-link" target="_blank">至原網站閱讀更多 →</a>
                         </div>
             """
         
-        html += """
+        html += f"""
                     </div>
                     <div class="footer">
-                        <p>祝你學習西班牙語愉快！</p>
+                        <p>西班牙語新聞每日精選 - {current_date} | 祝你學習西班牙語愉快！</p>
                     </div>
                 </div>
             </body>
