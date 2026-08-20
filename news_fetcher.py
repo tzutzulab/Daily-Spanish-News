@@ -1,5 +1,5 @@
 """
-新聞獲取模組 - 公平多源隨機盲盒抽取版本
+新聞獲取模組 - 西班牙在地媒體來源版本
 """
 
 import feedparser
@@ -13,8 +13,9 @@ logger = logging.getLogger(__name__)
 
 class NewsFetcher:
     def __init__(self):
+        # 使用根基於西班牙當地的真實媒體 RSS 來源（如 RTVE 西班牙國家廣播電視台）
         self.rss_feeds = [
-            'https://feeds.elpais.com/elpais/portada',
+            'https://www.rtve.es/rss/noticias_portada.xml',
             'https://www.bbc.com/mundo/index.xml',
         ]
     
@@ -30,7 +31,7 @@ class NewsFetcher:
                 full_text_list = []
                 for p in paragraphs:
                     text = p.get_text().strip()
-                    if len(text) > 40 and not any(kw in text.lower() for kw in ['cookie', 'suscríbete', 'derechos reservados', 'publicidad']):
+                    if len(text) > 40 and not any(kw in text.lower() for kw in ['cookie', 'suscríbete', 'derechos reservados', 'publicidad', 'privacidad', 'aviso legal']):
                         full_text_list.append(text)
                 
                 if full_text_list:
@@ -51,7 +52,7 @@ class NewsFetcher:
                 
                 for entry in feed.entries[:5]: # 每個來源取前 5 篇
                     summary = entry.get('summary', '')
-                    if len(summary) < 50:
+                    if len(summary) < 30:
                         continue
                     
                     link = entry.get('link', '')
@@ -69,7 +70,6 @@ class NewsFetcher:
                         'source': feed.feed.get('title', 'News')
                     })
                 
-                # 將該來源收集到的文章加入總候選池
                 all_candidates.extend(source_candidates)
             except Exception as e:
                 logger.error(f"Error fetching RSS {feed_url}: {str(e)}")
