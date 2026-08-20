@@ -1,4 +1,4 @@
-requests2.31.0
-feedparser6.0.10
-python-dotenv1.0.0
-schedule1.2.0
+requests
+feedparser
+python-dotenv
+schedule
